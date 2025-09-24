@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { collection, query, where, getDocs, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -12,11 +12,7 @@ const MyBookings = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    fetchUserBookings();
-  }, [currentUser]);
-
-  const fetchUserBookings = async () => {
+  const fetchUserBookings = useCallback(async () => {
     try {
       setLoading(true);
       const bookingsQuery = query(
@@ -40,7 +36,11 @@ const MyBookings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser?.uid]);
+
+  useEffect(() => {
+    fetchUserBookings();
+  }, [fetchUserBookings]);
 
   const formatDateTime = (date) => {
     return date.toLocaleString('da-DK', {
@@ -315,4 +315,4 @@ const MyBookings = () => {
   );
 };
 
-export default MyBookings; 
+export default MyBookings;

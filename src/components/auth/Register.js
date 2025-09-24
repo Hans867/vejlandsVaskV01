@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { collection, query, getDocs } from 'firebase/firestore';
@@ -20,12 +20,9 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [loadingColors, setLoadingColors] = useState(true);
 
-  useEffect(() => {
-    checkUserCount();
-    loadAvailableColors();
-  }, []);
-
-  const checkUserCount = async () => {
+  // memoize the functions that are used inside useEffect so they can be safely
+  // referenced in the dependency array without triggering eslint warnings
+  const checkUserCount = useCallback(async () => {
     try {
       const usersRef = collection(db, 'users');
       const snapshot = await getDocs(query(usersRef));
@@ -33,20 +30,26 @@ const Register = () => {
     } catch (error) {
       console.error('Fejl ved optælling af brugere:', error);
     }
-  };
+  }, []);
 
-  const loadAvailableColors = async () => {
+  const loadAvailableColors = useCallback(async () => {
     try {
       setLoadingColors(true);
       const colors = await getAvailableColors();
-      setAvailableColors(colors);
+      setAvailableColors(colors || []);
     } catch (error) {
       console.error('Fejl ved indlæsning af farver:', error);
       setError('Fejl ved indlæsning af tilgængelige farver');
     } finally {
       setLoadingColors(false);
     }
-  };
+  }, [getAvailableColors]);
+
+  // include memoized functions in the dependency array
+  useEffect(() => {
+    checkUserCount();
+    loadAvailableColors();
+  }, [checkUserCount, loadAvailableColors]);
 
   const handleChange = (e) => {
     setFormData({
@@ -305,4 +308,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;

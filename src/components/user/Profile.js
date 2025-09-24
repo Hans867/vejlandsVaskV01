@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { doc, updateDoc, collection, query, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -30,7 +30,7 @@ const Profile = () => {
     loadAvailableColors();
   }, [userProfile]);
 
-  const loadAvailableColors = async () => {
+  const loadAvailableColors = useCallback(async () => {
     try {
       const usersRef = collection(db, 'users');
       const snapshot = await getDocs(query(usersRef));
@@ -51,7 +51,7 @@ const Profile = () => {
     } catch (error) {
       console.error('Fejl ved indlæsning af farver:', error);
     }
-  };
+  }, [availableColors, currentUser?.uid, userProfile?.farve]);
 
   const handleChange = (e) => {
     setFormData({

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-
+ 
 const Dashboard = () => {
   const { userProfile } = useAuth();
   const [currentBooking, setCurrentBooking] = useState(null);
@@ -13,11 +13,7 @@ const Dashboard = () => {
   const [currentBookingUser, setCurrentBookingUser] = useState(null);
   const [nextBookingUser, setNextBookingUser] = useState(null);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       const now = new Date();
@@ -80,7 +76,11 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userProfile]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const formatTime = (date) => {
     return date.toLocaleString('da-DK', {
