@@ -54,33 +54,48 @@ export const AuthProvider = ({ children }) => {
   };
 
   const getUsersColors = async () => {
-    const usersRef = collection(db, 'users');
-    const snapshot = await getDocs(query(usersRef));
-    const usedColors = [];
-    
-    snapshot.forEach((doc) => {
-      const userData = doc.data();
-      if (userData.farve) {
-        usedColors.push(userData.farve);
-      }
-    });
-    
-    return usedColors;
+    try {
+      const usersRef = collection(db, 'users');
+      const snapshot = await getDocs(query(usersRef));
+      const usedColors = [];
+      
+      snapshot.forEach((doc) => {
+        const userData = doc.data();
+        if (userData.farve) {
+          usedColors.push(userData.farve);
+        }
+      });
+      
+      return usedColors;
+    } catch (error) {
+      console.error('Error fetching users colors:', error);
+      return []; // Return empty array on error
+    }
   };
 
   const getAvailableColors = async () => {
-    const usedColors = await getUsersColors();
-    return availableColors.filter(color => !usedColors.includes(color.value));
+    try {
+      const usedColors = await getUsersColors();
+      return availableColors.filter(color => !usedColors.includes(color.value));
+    } catch (error) {
+      console.error('Error getting available colors:', error);
+      return availableColors; // Return all colors if error
+    }
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setCurrentUser(user);
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setUserProfile(docSnap.data());
+        try {
+          const docRef = doc(db, 'users', user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setUserProfile({ uid: user.uid, ...docSnap.data() });
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          setUserProfile({ uid: user.uid });
         }
       } else {
         setCurrentUser(null);
@@ -108,4 +123,4 @@ export const AuthProvider = ({ children }) => {
       {!loading && children}
     </AuthContext.Provider>
   );
-}; 
+};
