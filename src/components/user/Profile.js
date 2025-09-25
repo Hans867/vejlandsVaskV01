@@ -19,17 +19,6 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    if (userProfile) {
-      setFormData(prev => ({
-        ...prev,
-        brugernavn: userProfile.brugernavn || '',
-        farve: userProfile.farve || ''
-      }));
-    }
-    loadAvailableColors();
-  }, [userProfile]);
-
   const loadAvailableColors = useCallback(async () => {
     try {
       const usersRef = collection(db, 'users');
@@ -52,6 +41,17 @@ const Profile = () => {
       console.error('Fejl ved indlæsning af farver:', error);
     }
   }, [availableColors, currentUser?.uid, userProfile?.farve]);
+
+  useEffect(() => {
+    if (userProfile) {
+      setFormData(prev => ({
+        ...prev,
+        brugernavn: userProfile.brugernavn || '',
+        farve: userProfile.farve || ''
+      }));
+    }
+    loadAvailableColors();
+  }, [userProfile, loadAvailableColors]);
 
   const handleChange = (e) => {
     setFormData({
